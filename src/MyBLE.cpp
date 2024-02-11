@@ -29,8 +29,12 @@ void MyBLE::SensorCharaWriteHandler(BLEDevice central, BLECharacteristic chara)
 
 void MyBLE::SensorCharaReadHandler(BLEDevice central, BLECharacteristic chara)
 {
-  uint8_t val[20];
-  chara.readValue(val, 20);
+  uint8_t val[2];
+  chara.readValue(val, 2);
+  Serial.print(val[0]);
+  Serial.print(",");
+  Serial.println(val[1]);
+  // 受け取ったメッセージごとに処理
 }
 
 void MyBLE::blePeripheralConnectHandler(BLEDevice central)

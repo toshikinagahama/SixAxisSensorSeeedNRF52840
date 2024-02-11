@@ -21,13 +21,13 @@ void sampling()
 {
   // サンプリング
   sensor->getValue();
-  ulong time_e_last = 0;
+  // ulong time_e_last = 0;
   time_e = micros();
   while (time_e - time_s0 < 10000 * cnt)
   {
     time_e = micros();
     // Serial.println(time_e - time_e_last);
-    time_e_last = time_e;
+    // time_e_last = time_e;
   }
   ulong tmp_time_s = time_s;
   time_s = time_e;
@@ -58,7 +58,7 @@ void doAction(MyEvent EVT)
     }
     break;
   case STATE_WAIT:
-    ui->setLEDRGB(false, false, true);
+    ui->setLEDRGB(true, false, false);
     central = BLE.central();
     if (central)
     {
