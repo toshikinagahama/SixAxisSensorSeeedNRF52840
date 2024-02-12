@@ -13,14 +13,14 @@ MySensor::~MySensor()
 void MySensor::initialize()
 {
   this->IMU->settings.gyroRange = 2000;
-  this->IMU->settings.accelRange = 4;
+  this->IMU->settings.accelRange = 16;
   while (this->IMU->begin() != 0)
   {
   }
-  this->IMU->writeRegister(LSM6DS3_ACC_GYRO_CTRL2_G, 0x8C);
-  this->IMU->writeRegister(LSM6DS3_ACC_GYRO_CTRL1_XL, 0x8A);
-  this->IMU->writeRegister(LSM6DS3_ACC_GYRO_CTRL7_G, 0x00);
-  this->IMU->writeRegister(LSM6DS3_ACC_GYRO_CTRL8_XL, 0x09);
+  // this->IMU->writeRegister(LSM6DS3_ACC_GYRO_CTRL2_G, 0x8C);
+  // this->IMU->writeRegister(LSM6DS3_ACC_GYRO_CTRL1_XL, 0x8A);
+  // this->IMU->writeRegister(LSM6DS3_ACC_GYRO_CTRL7_G, 0x00);
+  // this->IMU->writeRegister(LSM6DS3_ACC_GYRO_CTRL8_XL, 0x09);
 }
 
 void MySensor::getValue()
