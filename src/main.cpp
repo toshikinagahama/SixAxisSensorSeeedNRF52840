@@ -37,7 +37,7 @@ void sampling()
   }
   ulong tmp_time_s = time_s;
   time_s = time_e;
-  Serial.println(time_e - tmp_time_s);
+  // Serial.println(time_e - tmp_time_s);
   cnt++;
 }
 

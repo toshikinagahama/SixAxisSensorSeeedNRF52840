@@ -13,12 +13,12 @@ class MySensor
 public:
   // メンバ
   LSM6DS3 *IMU;
-  uint16_t acc_x;
-  uint16_t acc_y;
-  uint16_t acc_z;
-  uint16_t gyr_x;
-  uint16_t gyr_y;
-  uint16_t gyr_z;
+  int16_t acc_x;
+  int16_t acc_y;
+  int16_t acc_z;
+  int16_t gyr_x;
+  int16_t gyr_y;
+  int16_t gyr_z;
 
   //  関数
   MySensor();
