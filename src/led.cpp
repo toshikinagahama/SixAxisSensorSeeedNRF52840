@@ -1,11 +1,11 @@
-#include "ui.h"
+#include "led.h"
 #include "global.h"
 
-UI::UI()
+LED::LED()
 {
 }
 
-UI::~UI()
+LED::~LED()
 {
 }
 
@@ -13,7 +13,7 @@ UI::~UI()
  * @brief 初期化関数
  *
  */
-void UI::initialize()
+void LED::initialize()
 {
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_GREEN, OUTPUT);
@@ -29,7 +29,7 @@ void UI::initialize()
  * @param interval_on
  * @param interval_off
  */
-void UI::redBlink(uint16_t interval_on, uint16_t interval_off)
+void LED::redBlink(uint16_t interval_on, uint16_t interval_off)
 {
   this->time_e = millis();
   if (this->isRedOn && this->time_e - this->time_s > interval_on)
@@ -61,7 +61,7 @@ void UI::redBlink(uint16_t interval_on, uint16_t interval_off)
  * @param interval_on
  * @param interval_off
  */
-void UI::greenBlink(uint16_t interval_on, uint16_t interval_off)
+void LED::greenBlink(uint16_t interval_on, uint16_t interval_off)
 {
   this->time_e = millis();
   if (this->isGreenOn && this->time_e - this->time_s > interval_on)
@@ -93,7 +93,7 @@ void UI::greenBlink(uint16_t interval_on, uint16_t interval_off)
  * @param interval_on
  * @param interval_off
  */
-void UI::blueBlink(uint16_t interval_on, uint16_t interval_off)
+void LED::blueBlink(uint16_t interval_on, uint16_t interval_off)
 {
   this->time_e = millis();
   if (this->isGreenOn && this->time_e - this->time_s > interval_on)
@@ -126,7 +126,7 @@ void UI::blueBlink(uint16_t interval_on, uint16_t interval_off)
  * @param green
  * @param blue
  */
-void UI::setLEDRGB(bool red, bool green, bool blue)
+void LED::setLEDRGB(bool red, bool green, bool blue)
 {
   if (!red)
     digitalWrite(LED_RED, HIGH);

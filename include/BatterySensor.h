@@ -13,7 +13,7 @@ public:
   float raw_vol = 0.0;
   uint8_t level = 0;
   void initialize();
-  void getValue();
+  uint16_t getValue();
 };
 
 #endif // BATTERYSENSOR_H

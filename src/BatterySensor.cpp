@@ -1,72 +1,30 @@
 #include "BatterySensor.h"
 #include <nrf52840.h>
 #include <nrfx_saadc.h>
-#include <AnalogIn.h>
-#include <pinDefinitions.h>
 
 void BatterySensor::initialize()
 {
+  analogReference(AR_VDD);  // VREF = 2.4V
+  analogReadResolution(10); // 10bit A/D
   pinMode(this->PIN_WAKEUP, OUTPUT);
-  pinMode(this->PIN_READ, INPUT);
+  digitalWrite(this->PIN_WAKEUP, LOW);
+  // pinMode(this->PIN_READ, INPUT);
 }
 
-class HackAnalogIn : public mbed::AnalogIn
+uint16_t BatterySensor::getValue()
 {
-  using mbed::AnalogIn::AnalogIn;
 
-public:
-  analogin_t getAnalogIn_t();
-};
+  const int max_voltage_mv = 4200; // 4.2V (満充電)
+  const int min_voltage_mv = 3000; // 3.0V (放電終止)
 
-analogin_t HackAnalogIn::getAnalogIn_t()
-{
-  return this->_adc;
-}
-
-void BatterySensor::getValue()
-{
-  // うまく動かないので一旦コメントアウト
-  //   digitalWrite(this->PIN_WAKEUP, LOW);
-  //   float adcCount = 0.0;
-  //   float tmp = 0;
-  //   uint8_t num = 10;
-  //   Serial.println("vBat");
-  //   for (uint8_t i = 0; i < num; i++)
-  //   {
-  //     PinName name = analogPinToPinName(this->PIN_READ);
-  //     if (name == NC)
-  //     {
-  //       return;
-  //     }
-  //     HackAnalogIn *adc = static_cast<HackAnalogIn *>(analogPinToAdcObj(this->PIN_READ));
-  //     if (adc == NULL)
-  //     {
-  //       adc = new HackAnalogIn(name);
-  //       analogPinToAdcObj(this->PIN_READ) = static_cast<mbed::AnalogIn *>(adc);
-  // #ifdef ANALOG_CONFIG
-  //       if (isAdcConfigChanged)
-  //       {
-  //         adc->configure(adcCurrentConfig);
-  //       }
-  // #endif
-  //     }
-  //     nrf_saadc_value_t buffer = 0;
-  //     nrfx_saadc_buffer_convert(&buffer, 1);
-  //     nrfx_err_t ret = nrfx_saadc_sample();
-  //     if (ret == NRFX_ERROR_BUSY)
-  //     {
-  //       // failed to start sampling
-  //       return;
-  //     }
-  //     //   Serial.println(i);
-  //     tmp += (float)buffer;
-  //     delay(10);
-  //   }
-  //   // adcCount = buffer;
-  //   adcCount = tmp / num;
-  //   double adcVoltage = (adcCount * 3.3) / 1024;
-  //   // double adcVoltage = (adcCount * 3.3) / 1024;
-  //   double vBat = adcVoltage * 1510.0 / 510.0; // Voltage divider from Vbat to ADC
-  //   // Serial.println(vBat);
-  //   digitalWrite(this->PIN_WAKEUP, HIGH);
+  // バッテリー電圧の測定
+  int vbat_raw = analogRead(PIN_VBAT);
+  // int vbat_raw = 1;
+  int vbat_mv = vbat_raw * 3300 / 1023; // VREF = 2.4V, 10bit A/D
+  // vbat_mv = vbat_mv * 1510 / 510;       // 1M + 510k / 510k
+  uint16_t volt = (uint16_t)(vbat_mv * 1.18);
+  int battery_percent = map(vbat_mv, min_voltage_mv, max_voltage_mv, 0, 100);
+  Serial.println(volt);
+  return volt;
+  // return battery_percent;
 }

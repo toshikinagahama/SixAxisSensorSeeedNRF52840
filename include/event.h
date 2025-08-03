@@ -15,6 +15,7 @@ enum MyState
   STATE_ADVERTISE,
   STATE_MEAS,
   STATE_MAX,
+  // これ以外にもdeepsleepがあるが、リセットされるのでステートに含めない
 };
 
 enum MyEvent
@@ -25,6 +26,8 @@ enum MyEvent
   EVT_MEAS_START,
   EVT_MEAS_STOP,
   EVT_GET_DEVICE_INFO,
+  EVT_BUTTON_A_SHORT_PRESSED,
+  EVT_BUTTON_A_LONG_PRESSED,
 };
 
 // 外部宣言

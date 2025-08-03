@@ -4,19 +4,21 @@
 #include "MyBLE.h"
 #include "MySensor.h"
 #include "BatterySensor.h"
-#include "ui.h"
+#include "led.h"
+#include "button.h"
 #include "event.h"
 
 ulong time_s0 = 0;
 ulong time_s = 0;
 ulong time_e = 0;
+ulong time_battery_s = 0; // バッテリー送付タイミング用（1sに1回送付）
 ulong cnt = 0;
 
 MyState state;
 MyBLE *ble = new MyBLE();
 MySensor *sensor = new MySensor();
 BatterySensor *batterySensor = new BatterySensor();
-UI *ui = new UI();
+LED *led = new LED();
 BLEDevice central;
 
 /**
@@ -84,20 +86,40 @@ void doAction(MyEvent EVT)
   {
   case STATE_ADVERTISE:
     ble->poll();
-    ui->greenBlink(200, 1000);
+    led->greenBlink(200, 1000);
     switch (EVT)
     {
     case EVT_BLE_CONNECTED:
       state = STATE_WAIT;
+      break;
+    case EVT_BUTTON_A_SHORT_PRESSED:
+      Serial.println("SHORT PRESSED");
+      batterySensor->getValue();
+      led->setLEDRGB(false, false, true);
+      delay(1000);
+      break;
+    case EVT_BUTTON_A_LONG_PRESSED:
+      Serial.println("Going to System OFF");
+      led->setLEDRGB(false, false, false);
+      delay(1000); // delay seems important to apply settings, before going to System OFF
+      // Ensure interrupt pin from IMU is set to wake up device
+      nrf_gpio_cfg_sense_input(digitalPinToInterrupt(P1_13), NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_SENSE_LOW);
+      delay(2000); // Trigger System OFF
+      NRF_POWER->SYSTEMOFF = 1;
       break;
     default:
       break;
     }
     break;
   case STATE_WAIT:
-    ui->setLEDRGB(false, true, false);
+    led->setLEDRGB(false, true, false);
     central = BLE.central();
-    batterySensor->getValue();
+    if (millis() - time_battery_s >= 1000)
+    {
+      // 1秒に1回
+      ble->Battery_chara->writeValue((uint16_t)(batterySensor->getValue()));
+      time_battery_s = millis();
+    }
     switch (EVT)
     {
     case EVT_BLE_DISCONNECTED:
@@ -110,12 +132,26 @@ void doAction(MyEvent EVT)
       break;
     case EVT_GET_DEVICE_INFO:
       break;
+    case EVT_BUTTON_A_SHORT_PRESSED:
+      Serial.println("SHORT PRESSED");
+      led->setLEDRGB(false, false, true);
+      delay(1000);
+      break;
+    case EVT_BUTTON_A_LONG_PRESSED:
+      Serial.println("Going to System OFF");
+      led->setLEDRGB(false, false, false);
+      delay(1000); // delay seems important to apply settings, before going to System OFF
+      // Ensure interrupt pin from IMU is set to wake up device
+      nrf_gpio_cfg_sense_input(digitalPinToInterrupt(P1_13), NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_SENSE_LOW);
+      delay(2000); // Trigger System OFF
+      NRF_POWER->SYSTEMOFF = 1;
+      break;
     default:
       break;
     }
     break;
   case STATE_MEAS:
-    ui->setLEDRGB(true, false, false);
+    led->setLEDRGB(true, false, false);
     if (central && central.connected())
     {
       sampling();
@@ -133,6 +169,17 @@ void doAction(MyEvent EVT)
     case EVT_BLE_DISCONNECTED:
       state = STATE_ADVERTISE;
       break;
+    case EVT_BUTTON_A_SHORT_PRESSED:
+      break;
+    case EVT_BUTTON_A_LONG_PRESSED:
+      Serial.println("Going to System OFF");
+      led->setLEDRGB(false, false, false);
+      delay(1000); // delay seems important to apply settings, before going to System OFF
+      // Ensure interrupt pin from IMU is set to wake up device
+      nrf_gpio_cfg_sense_input(digitalPinToInterrupt(P1_13), NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_SENSE_LOW);
+      delay(2000); // Trigger System OFF
+      NRF_POWER->SYSTEMOFF = 1;
+      break;
     default:
       break;
     }
@@ -142,17 +189,24 @@ void doAction(MyEvent EVT)
   }
 }
 
+// 長押しの閾値 (ms)
+
 void setup()
 {
   Serial.begin(115200);
   batterySensor->initialize();
-  ui->initialize();
+  led->initialize();
+  button_initialize(); // ボタンはクラスにしたかったが、割り込み関数は静的じゃないといけないので、関数化してる
   ble->initialize();
   ble->advertiseStart();
   sensor->initialize();
 
   time_s = micros();
   state = STATE_ADVERTISE;
+
+  // BUTTON DEBUG
+  led->setLEDRGB(false, false, true);
+  // attachInterrupt(digitalPinToInterrupt(P1_13), handleInterrupt, CHANGE);
 }
 
 void loop()

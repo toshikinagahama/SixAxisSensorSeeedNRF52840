@@ -13,11 +13,13 @@
  */
 struct INT_BIT_T
 {
-  uint8_t BLE_CONNECTED = 0;       // BLE端末と接続
-  uint8_t BLE_DISCONNECTED = 0;    // BLE端末と切断
-  uint8_t CMD_MEAS_START = 0;      // 測定開始コマンド
-  uint8_t CMD_MEAS_STOP = 0;       // 測定終了コマンド
-  uint8_t CMD_GET_DEVICE_INFO = 0; // 機器情報取得コマンド
+  uint8_t BLE_CONNECTED = 0;          // BLE端末と接続
+  uint8_t BLE_DISCONNECTED = 0;       // BLE端末と切断
+  uint8_t CMD_MEAS_START = 0;         // 測定開始コマンド
+  uint8_t CMD_MEAS_STOP = 0;          // 測定終了コマンド
+  uint8_t CMD_GET_DEVICE_INFO = 0;    // 機器情報取得コマンド
+  uint8_t BUTTON_A_SHORT_PRESSED = 0; // ボタンA単押し
+  uint8_t BUTTON_A_LONG_PRESSED = 0;  // ボタンA長押し
 };
 
 /**
@@ -35,9 +37,9 @@ struct INT_T
  */
 struct SYS_T
 {
-  std::string DEVICE_SERIAL_NUM = "";
-  std::string DEVICE_VERSION = "";
-  std::string BLE_ARG = ""; // BLEコマンドの引数
+  String DEVICE_SERIAL_NUM = "";
+  String DEVICE_VERSION = "";
+  String BLE_ARG = ""; // BLEコマンドの引数
 };
 
 // 外部宣言

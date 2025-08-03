@@ -20,13 +20,14 @@ var mode = 0;
 
 var data = [];
 var cnt = 0;
+var cnt2 = 0;
 
 //デバイスと接続時の認証用UUID、ペリフェラル側で設定したものと同じである必要がある。
-const DEVICE_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+const DEVICE_SERVICE_UUID = "4fafc202-1fb5-459e-8fcc-c5c9c331914b";
 const DEVICE_WRITE_CHARACTERISTIC_UUID =
   "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 const DEVICE_READ_CHARACTERISTIC_UUID =
-  "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+  "beb5483f-36e1-4688-b7f5-ea07361b26a8";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -36,6 +37,8 @@ function connect() {
   options.filters = [
     //{ acceptAllDevices: true }, //コメントアウトを外すと周囲の全てのデバイスをスキャンする
     { services: [0x180f, DEVICE_SERVICE_UUID] }, //スキャンするデバイスのUUIDを指定
+    //{ services: [0x180f, DEVICE_SERVICE_UUID] }, //スキャンするデバイスのUUIDを指定
+    { namePrefix: "HAMA" },
   ];
   //options.optionalService = ["0x180F", DEVICE_SERVICE_UUID];
   //filterの条件で周囲のBLEデバイスをスキャン
@@ -51,12 +54,29 @@ function connect() {
       //サーバー接続
       console.log("server", server);
       _oServer = server;
-      return _oServer.getPrimaryService(DEVICE_SERVICE_UUID);
+      return Promise.all([_oServer.getPrimaryService(DEVICE_SERVICE_UUID), _oServer.getPrimaryService(0x180f)]);
     })
-    .then((service) => {
+    .then((services) => {
       //サービス接続
-      console.log("service", service);
-      _oService = service;
+      console.log("services:", services);
+      _oService = services[0];
+      const batteryService = services[1];
+                  // バッテリーサービスの通知設定
+      batteryService.getCharacteristic(0x2A19)
+        .then(characteristic => {
+          characteristic.addEventListener(
+            "characteristicvaluechanged",
+            onRecvBatteryData
+          );
+          return characteristic.startNotifications();
+        })
+        .then(() => {
+          console.log("バッテリーレベルの通知設定成功");
+        })
+        .catch((error) => {
+          console.error("バッテリーレベル通知設定エラー: " + error);
+        });
+
       return _oService.getCharacteristic(DEVICE_READ_CHARACTERISTIC_UUID);
     })
     .then((chara) => {
@@ -83,6 +103,20 @@ function connect() {
       console.log(error);
     });
 }
+  
+function onRecvBatteryData(event) {
+  const value = event.target.value;
+  const batteryLevel = value.getUint16(0, true);
+  const now = new Date();
+  const timeString = now.toLocaleTimeString(); // "15:30:45" のような形式で取得
+
+  console.log(timeString, " BATTERY_SERVICE:", batteryLevel);
+  if(cnt2 % 30 == 0){
+    document.getElementById("response_history").value += `${timeString} ${batteryLevel}\n`;
+  }
+  //console.log("BATTERY_SERVICE:", batteryLevel + "%");
+  cnt2++;
+}
 
 function onRecvSensorData(event) {
   const value = event.target.value;
@@ -91,9 +125,9 @@ function onRecvSensorData(event) {
   for (let i = 0; i < array.length; i++) {
     array_hex.push(toHex(array[i]));
   }
-  console.log(array_hex);
-  document.getElementById("response_history").value += array_hex;
-  document.getElementById("response_history").value += "\n";
+  //console.log(array_hex);
+  //document.getElementById("response_history").value += array_hex;
+  //document.getElementById("response_history").value += "\n";
 }
 
 function getDevice() {}

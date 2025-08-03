@@ -15,6 +15,10 @@ MyEvent Detect_Event()
     return EVT_MEAS_START;
   if (INT.BIT.CMD_MEAS_STOP == 1)
     return EVT_MEAS_STOP;
+  if (INT.BIT.BUTTON_A_SHORT_PRESSED == 1)
+    return EVT_BUTTON_A_SHORT_PRESSED;
+  if (INT.BIT.BUTTON_A_LONG_PRESSED == 1)
+    return EVT_BUTTON_A_LONG_PRESSED;
   return EVT_NOP;
 }
 
@@ -41,6 +45,13 @@ void Release_Event(MyEvent EVT)
   case EVT_GET_DEVICE_INFO:
     INT.BIT.CMD_GET_DEVICE_INFO = 0;
     break;
+  case EVT_BUTTON_A_SHORT_PRESSED:
+    INT.BIT.BUTTON_A_SHORT_PRESSED = 0;
+    break;
+  case EVT_BUTTON_A_LONG_PRESSED:
+    INT.BIT.BUTTON_A_LONG_PRESSED = 0;
+    break;
+
   default:
     break;
   }

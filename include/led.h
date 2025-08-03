@@ -1,11 +1,11 @@
-#ifndef UI_H
-#define UI_H
+#ifndef LED_H
+#define LED_H
 // インクルード
 #include <Arduino.h>
 #include <nrf52840.h>
 #include "global.h"
 
-class UI
+class LED
 {
 
 private:
@@ -18,8 +18,8 @@ private:
 
 public:
   //  関数
-  UI();
-  ~UI();
+  LED();
+  ~LED();
   void initialize();
   void redBlink(uint16_t, uint16_t);
   void greenBlink(uint16_t, uint16_t);
