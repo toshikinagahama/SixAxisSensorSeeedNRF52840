@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+
+<head lang="ja">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>BLEデバッグアプリ</title>
+
+  <script>
+  var BluetoothDevice;
+var _oDevice;
+var _oServer;
+var _oService;
+var _oCharaRead;
+var _oCharaWrite;
+var _descriptor;
+var _oVal;
+var mode = 0;
+
+var data = [];
+var cnt = 0;
+
+//デバイスと接続時の認証用UUID、ペリフェラル側で設定したものと同じである必要がある。
+const DEVICE_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+const DEVICE_WRITE_CHARACTERISTIC_UUID =
+  "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+const DEVICE_READ_CHARACTERISTIC_UUID =
+  "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function connect() {
+  let options = {};
+
+  options.filters = [
+    //{ acceptAllDevices: true }, //コメントアウトを外すと周囲の全てのデバイスをスキャンする
+    { services: [0x180f, DEVICE_SERVICE_UUID] }, //スキャンするデバイスのUUIDを指定
+  ];
+  //options.optionalService = ["0x180F", DEVICE_SERVICE_UUID];
+  //filterの条件で周囲のBLEデバイスをスキャン
+  navigator.bluetooth
+    .requestDevice(options)
+    .then((device) => {
+      //デバイス接続
+      console.log("device", device);
+      _oDevice = device;
+      return _oDevice.gatt.connect();
+    })
+    .then((server) => {
+      //サーバー接続
+      console.log("server", server);
+      _oServer = server;
+      return _oServer.getPrimaryService(DEVICE_SERVICE_UUID);
+    })
+    .then((service) => {
+      //サービス接続
+      console.log("service", service);
+      _oService = service;
+      return _oService.getCharacteristic(DEVICE_READ_CHARACTERISTIC_UUID);
+    })
+    .then((chara) => {
+      //READキャラクタリスティック接続
+      console.log("chara", chara);
+      _oCharaRead = chara;
+      _oCharaRead.addEventListener(
+        "characteristicvaluechanged",
+        onRecvSensorData
+      );
+      _oCharaRead.startNotifications();
+      console.log("READキャラクタ接続成功");
+      return _oService.getCharacteristic(DEVICE_WRITE_CHARACTERISTIC_UUID);
+    })
+    .then((chara) => {
+      //WRITEキャラクタリスティック接続
+      console.log("chara", chara);
+      _oCharaWrite = chara;
+      console.log("WRITEキャラクタ接続成功");
+      var elem = document.getElementById("status_text");
+      elem.innerText = "状態: 接続済";
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
+function onRecvSensorData(event) {
+  const value = event.target.value;
+  let array = new Uint8Array(value.buffer);
+  let array_hex = [];
+  for (let i = 0; i < array.length; i++) {
+    array_hex.push(toHex(array[i]));
+  }
+  console.log(array_hex);
+  document.getElementById("response_history").value += array_hex;
+  document.getElementById("response_history").value += "\n";
+}
+
+function getDevice() {}
+
+function send_command() {
+  let data_send = document.getElementById("data_send").value; //データ取得
+  //intに変換
+  data_send = data_send.split(",");
+  for (let i = 0; i < data_send.length; i++) {
+    data_send[i] = parseInt(data_send[i], 16);
+  }
+  data_send = new Uint8Array(data_send);
+  console.log(data_send);
+  _oCharaWrite.writeValue(data_send);
+}
+
+function toHex(v) {
+  return "0x" + ("00" + v.toString(16).toUpperCase()).substr(-2);
+}
+
+const init = () => {};
+
+
+  </script>
+</head>
+
+<body onload="init()">
+  <main class="w-screen h-screen px-4 py-6">
+    <div class="flex flex-row justify-start item-center">   
+      <p class="mr-8 h-10 leading-10" id="status_text">状態: 未接続</p>
+      <button class="outline outline-1 rounded-md px-4 py-2 text-white bg-gray-900" onclick="connect()">接続</button>
+    </div>
+    <div class="my-4">   
+    </div>
+    <div class="flex flex-row justify-start item-center">   
+      <p class="mr-2 h-10 leading-10">コマンド:</p>
+    </div>
+    <div class="flex flex-row justify-start item-center">   
+      <p class="mr-2 h-10 leading-10">データ (例: 0xff):</p>
+      <input class="outline outline-1 my-2 mr-4" type="text" id="data_send" />
+      <button class="outline outline-1 rounded-md px-4 py-2 text-white bg-gray-900" onclick="send_command()">送信</button>
+    </div>
+    <div class="my-8">   
+    </div>
+    <div class="flex flex-row justify-start item-center">   
+      <p class="mr-2 h-10 leading-10">応答:</p>
+    </div>
+    <div class="flex flex-row justify-start item-center w-full">   
+      <textarea class="outline outline-1 rounded-xs w-[800px] text-[12px] h-96" id="response_history"></textarea>
+    </div>
+  </main>
+</body>
+
+</html>
+
