@@ -134,6 +134,7 @@ void doAction(MyEvent EVT)
       break;
     case EVT_BUTTON_A_SHORT_PRESSED:
       Serial.println("SHORT PRESSED");
+      // バッテリーの状態で点滅の色？回数を変えたい。
       led->setLEDRGB(false, false, true);
       delay(1000);
       break;
